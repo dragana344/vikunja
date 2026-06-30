@@ -1,0 +1,44 @@
+# Stage 1: Build frontend dist (required for Go embed)
+FROM node:24-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+ENV PNPM_CACHE_FOLDER=.cache/pnpm/
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV CYPRESS_INSTALL_BINARY=0
+
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN npm install -g corepack && corepack enable && \
+    pnpm install --frozen-lockfile
+
+COPY frontend/ ./
+RUN echo '{"VERSION": "dev"}' > src/version.json && \
+    pnpm run build
+
+# Stage 2: Build Go backend
+FROM golang:1.26-alpine AS backend-builder
+
+WORKDIR /app
+
+RUN apk add --no-cache git gcc musl-dev
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+COPY --from=frontend-builder /frontend/dist ./frontend/dist
+
+RUN go build -o vikunja .
+
+# Stage 3: Minimal runtime image
+FROM alpine:3.21
+
+WORKDIR /app/vikunja
+
+RUN apk add --no-cache ca-certificates tzdata
+
+COPY --from=backend-builder /app/vikunja .
+
+EXPOSE 3456
+
+CMD ["./vikunja"]
