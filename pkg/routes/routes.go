@@ -55,6 +55,7 @@ import (
 	"context"
 	"log/slog"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -286,7 +287,9 @@ func RegisterRoutes(e *echo.Echo) {
 	// healthcheck
 	e.GET("/health", HealthcheckHandler)
 
-	setupStaticFrontendFilesHandler(e)
+	if os.Getenv("VIKUNJA_SERVE_FRONTEND") != "false" {
+		setupStaticFrontendFilesHandler(e)
+	}
 
 	// CORS
 	if config.CorsEnable.GetBool() {
