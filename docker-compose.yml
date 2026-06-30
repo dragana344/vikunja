@@ -1,0 +1,64 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: vikunja-db
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - vikunja-db-data:/var/lib/postgresql/data
+    networks:
+      - vikunja-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: vikunja-backend
+    env_file: .env
+    environment:
+      VIKUNJA_DATABASE_TYPE: postgres
+      VIKUNJA_DATABASE_HOST: db
+      VIKUNJA_DATABASE_DATABASE: ${POSTGRES_DB}
+      VIKUNJA_DATABASE_USER: ${POSTGRES_USER}
+      VIKUNJA_DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      VIKUNJA_SERVICE_SECRET: ${VIKUNJA_SERVICE_SECRET}
+      VIKUNJA_SERVICE_PUBLICURL: http://vikunja.local
+      VIKUNJA_SERVE_FRONTEND: "false"
+    volumes:
+      - vikunja-files:/app/vikunja/files
+    networks:
+      - vikunja-net
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: vikunja-frontend
+    ports:
+      - "80:80"
+    networks:
+      - vikunja-net
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  vikunja-net:
+    driver: bridge
+
+volumes:
+  vikunja-db-data:
+  vikunja-files:
