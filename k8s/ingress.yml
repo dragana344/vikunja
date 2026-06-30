@@ -15,7 +15,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: vikunja-backend
+                name: backend
                 port:
                   number: 3456
           - path: /
