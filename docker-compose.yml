@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: vikunja-frontend
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
       - vikunja-net
     depends_on:
