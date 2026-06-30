@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-frontend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,14 +26,14 @@ jobs:
         with:
           context: .
           file: Dockerfile.frontend
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/vikunja-frontend:latest
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
   build-backend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
         with:
           context: .
           file: Dockerfile.backend
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/vikunja-backend:latest
           cache-from: type=gha,scope=backend
