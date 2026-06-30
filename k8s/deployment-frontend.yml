@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vikunja-frontend
+  namespace: vikunja
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vikunja-frontend
+  template:
+    metadata:
+      labels:
+        app: vikunja-frontend
+    spec:
+      containers:
+        - name: vikunja-frontend
+          image: dragana0407/vikunja-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
